@@ -87,9 +87,6 @@ class AddressHandler
             return -1; // Map Services (external) not enabled
         }
 
-        // Prepare address for geo lookup
-        $address = $this->prepareAddress($address);
-
         // Lookup based on activated service
         $coordinates = $this->getCoordinates($address);
 
@@ -167,8 +164,11 @@ class AddressHandler
             ]
         ];
 
+        // Prepare address for geo lookup
+        $encoded_address = $this->prepareAddress($address);
+
         $userAgent = stream_context_create($options);
-        $url = "https://nominatim.openstreetmap.org/?search&q={$address}&format=json&adressdetails=1";
+        $url = "https://nominatim.openstreetmap.org/?search&q={$encoded_address}&format=json&adressdetails=1";
         $resp_json = file_get_contents($url, false, $userAgent);
 
         //Check if the response is empty
@@ -228,7 +228,9 @@ class AddressHandler
      */
     private function getCoordinatesFromGoogle($address, $gAPIKey)
     {
-        $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$gAPIKey}";
+        // Prepare address for geo lookup
+        $encoded_address = $this->prepareAddress($address);
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$encoded_address}&key={$gAPIKey}";
         $resp_json = file_get_contents($url, false);
         $resp = json_decode($resp_json, true);
 
